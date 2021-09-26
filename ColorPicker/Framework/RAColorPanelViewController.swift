@@ -15,6 +15,18 @@ internal class RAColorPanelViewController: NSViewController {
         
         view = colorPanel.contentView!
         
+        if let toolbar = colorPanel.toolbar {
+            NSLog("%i", toolbar.items.count)
+            
+            let item = toolbar.items[1]
+            
+            if let target = item.target {
+                if let action = item.action {
+                    let _ = target.perform(action, with: item)
+                }
+            }
+        }
+        
         if let swatch = locateColorSwatch() {
             swatch.perform(NSSelectorFromString("updateSwatch"))
         }
@@ -28,11 +40,8 @@ private extension RAColorPanelViewController {
     
     func findSwatchInSubviews(v: NSView) -> NSView? {
         let classNameToLocate = "NSColorSwatch"
-//        let classNameToLocate = "NSColorPickerWheelView"
         
         for subview in v.subviews {
-            NSLog(subview.className)
-            
             if subview.className == classNameToLocate {
                 return subview
             } else if let foundView = findSwatchInSubviews(v: subview) {
