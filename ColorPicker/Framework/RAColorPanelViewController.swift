@@ -8,7 +8,10 @@ internal class RAColorPanelViewController: NSViewController {
 	weak var delegate: RAColorPanelViewControllerDelegate?
 	
 	private var isObserving = false
+	
 	private let colorKeyPath = (\NSColorPanel.color)._kvcKeyPathString ?? "color"
+	private let updateSwatchSelector = NSSelectorFromString("updateSwatch")
+	private let colorSwatchClassName = "NSColorSwatch"
 	
 	private var colorPanel: NSColorPanel { .shared }
 	private var colorView: NSView?
@@ -98,7 +101,7 @@ private extension RAColorPanelViewController {
 		self.colorView = colorView
 		
 		if let swatch = locateColorSwatch() {
-			swatch.perform(NSSelectorFromString("updateSwatch"))
+			swatch.perform(updateSwatchSelector)
 		}
 		
 //        if let toolbar = colorPanel.toolbar {
@@ -139,10 +142,8 @@ private extension RAColorPanelViewController {
     }
     
     func findSwatchInSubviews(v: NSView) -> NSView? {
-        let classNameToLocate = "NSColorSwatch"
-        
         for subview in v.subviews {
-            if subview.className == classNameToLocate {
+            if subview.className == colorSwatchClassName {
                 return subview
             } else if let foundView = findSwatchInSubviews(v: subview) {
                 return foundView

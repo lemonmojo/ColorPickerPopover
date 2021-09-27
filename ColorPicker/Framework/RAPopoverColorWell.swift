@@ -1,6 +1,8 @@
 import Cocoa
 
-@objc public protocol RAPopoverColorWellDelegate {
+@objc
+public protocol RAPopoverColorWellDelegate {
+	@objc(colorWell:didChangeColor:)
     func colorWell(_ colorWell: RAPopoverColorWell, didChangeColor color: NSColor)
 }
 
