@@ -1,45 +1,141 @@
 import Cocoa
 
+internal protocol RAColorPanelViewControllerDelegate: AnyObject {
+	func colorPanelViewController(_ viewController: RAColorPanelViewController, didChangeColor color: NSColor)
+}
+
 internal class RAColorPanelViewController: NSViewController {
-    var colorPanel: NSColorPanel!
+	weak var delegate: RAColorPanelViewControllerDelegate?
+	
+	private var isObserving = false
+	private let colorKeyPath = (\NSColorPanel.color)._kvcKeyPathString ?? "color"
+	
+	private var colorPanel: NSColorPanel { .shared }
+	private var colorView: NSView?
+	
+	var showsAlpha: Bool {
+		get { colorPanel.showsAlpha }
+		set { colorPanel.showsAlpha = newValue }
+	}
+	
+	var mode: NSColorPanel.Mode {
+		get { colorPanel.mode }
+		set { colorPanel.mode = newValue }
+	}
+	
+	var color: NSColor {
+		get { colorPanel.color }
+		set { colorPanel.color = newValue }
+	}
+	
+	var alpha: CGFloat {
+		colorPanel.alpha
+	}
+	
+	deinit {
+		unembedColorPanel()
+	}
     
     override func loadView() {
-        if NSColorPanel.sharedColorPanelExists && NSColorPanel.shared.isVisible {
-            NSColorPanel.shared.orderOut(self)
-        }
-        
-        colorPanel = NSColorPanel.shared
-        colorPanel.orderOut(self)
-        colorPanel.showsAlpha = true
-        colorPanel.mode = .wheel
-        
-        view = colorPanel.contentView!
-        
-        if let toolbar = colorPanel.toolbar {
-            NSLog("%i", toolbar.items.count)
-            
-            let item = toolbar.items[1]
-            
-            if let icon = item.image {
-                print("\(icon.size)")
-            }
-            
-            if let target = item.target {
-                if let action = item.action {
-                    let _ = target.perform(action, with: item)
-                }
-            }
-        }
-        
-        if let swatch = locateColorSwatch() {
-            swatch.perform(NSSelectorFromString("updateSwatch"))
-        }
+		if !isViewLoaded {
+			view = NSView()
+		}
+		
+		guard let colorView = colorPanel.contentView else { return }
+		
+		view.frame = colorView.bounds
     }
+	
+	override func viewWillAppear() {
+		embedColorPanel()
+	}
+	
+	override func viewWillDisappear() {
+		unembedColorPanel()
+	}
+	
+	override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+		switch keyPath {
+		case colorKeyPath:
+			guard let panel = object as? NSColorPanel,
+				  panel == colorPanel else {
+				return
+			}
+			
+			delegate?.colorPanelViewController(self, didChangeColor: color)
+		default:
+			super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
+		}
+	}
+}
+
+extension RAColorPanelViewController {
+	func unembedColorPanel() {
+		stopObservingColor()
+		
+		if let colorView = colorView {
+			colorView.removeFromSuperview()
+			colorPanel.contentView = colorView
+			self.colorView = nil
+		}
+	}
 }
 
 private extension RAColorPanelViewController {
+	func embedColorPanel() {
+		if NSColorPanel.sharedColorPanelExists && colorPanel.isVisible {
+			colorPanel.orderOut(self)
+		}
+		
+		guard let colorView = colorPanel.contentView else {
+			self.colorView = nil
+			
+			return
+		}
+		
+		view.addSubview(colorView)
+		
+		self.colorView = colorView
+		
+		if let swatch = locateColorSwatch() {
+			swatch.perform(NSSelectorFromString("updateSwatch"))
+		}
+		
+//        if let toolbar = colorPanel.toolbar {
+//            NSLog("%i", toolbar.items.count)
+//
+//            let item = toolbar.items[1]
+//
+//            if let icon = item.image {
+//                print("\(icon.size)")
+//            }
+//        }
+		
+		startObservingColor()
+	}
+	
+	func startObservingColor() {
+		colorPanel.addObserver(self,
+							   forKeyPath: colorKeyPath,
+							   options: .new,
+							   context: nil)
+		
+		isObserving = true
+	}
+	
+	func stopObservingColor() {
+		guard isObserving else { return }
+		
+		colorPanel.removeObserver(self,
+								  forKeyPath: colorKeyPath)
+		
+		isObserving = false
+	}
+	
     func locateColorSwatch() -> NSView? {
-        return findSwatchInSubviews(v: self.view)
+		guard let rootView = colorPanel.contentView else { return nil }
+		
+		return findSwatchInSubviews(v: rootView)
     }
     
     func findSwatchInSubviews(v: NSView) -> NSView? {

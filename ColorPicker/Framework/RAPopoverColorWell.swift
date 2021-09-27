@@ -6,62 +6,88 @@ import Cocoa
 
 @objc(RAPopoverColorWell)
 public class RAPopoverColorWell: NSColorWell {
-    private static let colorKeyPath = "color"
-    private let viewController = RAColorPanelViewController()
+	private let colorPanelViewController = RAColorPanelViewController()
 
     @IBOutlet
     @objc(delegate)
     public weak var delegate: RAPopoverColorWellDelegate?
-    
-    @objc
-    override open var isEnabled: Bool {
-        didSet {
-            alphaValue = isEnabled ? 1 : 0.5
-        }
+	
+	private static var popoverColorWells = [RAPopoverColorWell]()
+	
+	deinit {
+		Self.popoverColorWells.removeAll { colorWell in colorWell == self }
+		
+		colorPanelViewController.delegate = nil
+	}
+	
+	public override func viewDidMoveToSuperview() {
+		let added = superview != nil
+		
+		if added {
+			Self.popoverColorWells.append(self)
+		} else {
+			Self.popoverColorWells.removeAll { colorWell in colorWell == self }
+		}
+	}
+	
+	@objc
+    public override func activate(_ exclusive: Bool) {
+		colorPanelViewController.delegate = nil
+		
+		let deactivateAllColorWellsSelector = NSSelectorFromString("_deactivateAllColorWells")
+		
+		if NSColorWell.responds(to: deactivateAllColorWellsSelector) {
+			NSColorWell.perform(deactivateAllColorWellsSelector)
+		}
+		
+		for colorWell in Self.popoverColorWells {
+//			guard colorWell != self else { continue }
+			
+			colorWell.deactivate()
+		}
+		
+		NSColorPanel.shared.orderOut(self)
+		
+		presentInPopover()
     }
-    
-    override open func activate(_ exclusive: Bool) {
-        viewController.loadView()
-        viewController.colorPanel.color = color
-        
-        presentInPopover()
-        
-        viewController.colorPanel.addObserver(self,
-                                              forKeyPath: Self.colorKeyPath,
-                                              options: .new,
-                                              context: nil)
-    }
-    
-    open func presentInPopover() {
-        let popover = NSPopover()
-        
-        popover.delegate = self
-        popover.behavior = .semitransient
-        popover.contentViewController = viewController
-        popover.show(relativeTo: frame, of: self.superview!, preferredEdge: .maxX)
-    }
+	
+	@objc
+	public override func deactivate() {
+		colorPanelViewController.delegate = nil
+		colorPanelViewController.unembedColorPanel()
+		
+		super.deactivate()
+	}
+}
 
-    override open func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        switch keyPath {
-        case Self.colorKeyPath:
-            guard let panel = object as? NSColorPanel,
-                    panel == viewController.colorPanel else {
-                return
-            }
-            
-            color = viewController.colorPanel.color
-            
-            delegate?.colorWell(self, didChangeColor: color)
-        default:
-            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
-        }
-    }
+private extension RAPopoverColorWell {
+	func presentInPopover() {
+		colorPanelViewController.delegate = nil
+		
+		let popover = NSPopover()
+		
+		popover.delegate = self
+		popover.behavior = .semitransient
+		popover.contentViewController = colorPanelViewController
+		
+		popover.show(relativeTo: frame,
+					 of: self.superview!,
+					 preferredEdge: .maxX)
+		
+		colorPanelViewController.color = color
+		colorPanelViewController.delegate = self
+	}
 }
 
 extension RAPopoverColorWell: NSPopoverDelegate {
-    public func popoverDidClose(_ notification: Notification) {
-        deactivate()
-        
-        viewController.colorPanel.removeObserver(self, forKeyPath: Self.colorKeyPath)
-    }
+	public func popoverWillClose(_ notification: Notification) {
+		deactivate()
+	}
+}
+
+extension RAPopoverColorWell: RAColorPanelViewControllerDelegate {
+	func colorPanelViewController(_ viewController: RAColorPanelViewController, didChangeColor color: NSColor) {
+		self.color = color
+		delegate?.colorWell(self, didChangeColor: color)
+	}
 }
