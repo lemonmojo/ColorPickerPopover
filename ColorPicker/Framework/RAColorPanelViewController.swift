@@ -69,7 +69,7 @@ internal class RAColorPanelViewController: NSViewController {
 		unembedColorPanel()
 	}
 	
-	override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+	override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
 		switch keyPath {
 		case colorKeyPath:
 			guard let panel = object as? NSColorPanel,
@@ -191,7 +191,7 @@ private extension RAColorPanelViewController {
 
 		if let target = toolbarItem.target {
 			if let action = toolbarItem.action {
-				let _ = target.perform(action, with: toolbarItem)
+				_ = target.perform(action, with: toolbarItem)
 			}
 		}
 	}
@@ -217,14 +217,14 @@ private extension RAColorPanelViewController {
     func locateColorSwatch() -> NSView? {
 		guard let rootView = colorPanel.contentView else { return nil }
 		
-		return findSwatchInSubviews(v: rootView)
+		return findSwatchInSubviews(view: rootView)
     }
     
-    func findSwatchInSubviews(v: NSView) -> NSView? {
-        for subview in v.subviews {
+    func findSwatchInSubviews(view: NSView) -> NSView? {
+        for subview in view.subviews {
             if subview.className == colorSwatchClassName {
                 return subview
-            } else if let foundView = findSwatchInSubviews(v: subview) {
+            } else if let foundView = findSwatchInSubviews(view: subview) {
                 return foundView
             }
         }
