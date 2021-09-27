@@ -685,7 +685,6 @@
         </menu>
         <window title="ColorPickerPopover" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" animationBehavior="default" id="QvC-M9-y7g">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
-            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="335" y="390" width="480" height="360"/>
             <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1415"/>
             <view key="contentView" wantsLayer="YES" id="EiT-Mj-1SZ">
@@ -693,7 +692,7 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Mi9-Xp-dp0" customClass="RAPopoverColorWell">
-                        <rect key="frame" x="218" y="235" width="44" height="23"/>
+                        <rect key="frame" x="218" y="274" width="44" height="23"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <color key="color" red="0.0" green="1" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <connections>
@@ -701,7 +700,7 @@
                         </connections>
                     </colorWell>
                     <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="gtf-Nr-0pe" customClass="RAPopoverColorWell">
-                        <rect key="frame" x="289" y="169" width="44" height="23"/>
+                        <rect key="frame" x="289" y="208" width="44" height="23"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <color key="color" red="1" green="0.21748960849999999" blue="0.1500050886" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                         <connections>
@@ -709,7 +708,7 @@
                         </connections>
                     </colorWell>
                     <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hwG-HD-eV6" customClass="RAPopoverColorWell">
-                        <rect key="frame" x="218" y="104" width="44" height="23"/>
+                        <rect key="frame" x="218" y="143" width="44" height="23"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <color key="color" red="0.05813049898" green="0.055541899059999997" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                         <connections>
@@ -717,7 +716,7 @@
                         </connections>
                     </colorWell>
                     <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hdd-U8-ujf" customClass="RAPopoverColorWell">
-                        <rect key="frame" x="148" y="169" width="44" height="23"/>
+                        <rect key="frame" x="148" y="208" width="44" height="23"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <color key="color" red="0.79417696869999999" green="0.67792569670000002" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <connections>
@@ -725,7 +724,7 @@
                         </connections>
                     </colorWell>
                     <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cPH-25-UjY" customClass="ColorDemoTestView" customModule="ColorPickerPopover" customModuleProvider="target">
-                        <rect key="frame" x="210" y="151" width="60" height="60"/>
+                        <rect key="frame" x="210" y="190" width="60" height="60"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     </customView>
                     <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Mfe-Z8-9n1">

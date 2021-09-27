@@ -13,8 +13,15 @@ internal class RAColorPanelViewController: NSViewController {
 	private let updateSwatchSelector = NSSelectorFromString("updateSwatch")
 	private let colorSwatchClassName = "NSColorSwatch"
 	
+	private let toolbarHeight: CGFloat = 20
+	private let toolbarXMargin: CGFloat = 6
+	private let toolbarTopYMargin: CGFloat = 10
+	private let toolbarBottomYMargin: CGFloat = 2
+	
 	private var colorPanel: NSColorPanel { .shared }
+	private var colorPanelToolbar: NSToolbar? { colorPanel.toolbar }
 	private var colorView: NSView?
+	private var toolbarView: NSSegmentedControl?
 	
 	var showsAlpha: Bool {
 		get { colorPanel.showsAlpha }
@@ -46,7 +53,12 @@ internal class RAColorPanelViewController: NSViewController {
 		
 		guard let colorView = colorPanel.contentView else { return }
 		
-		view.frame = colorView.bounds
+		let frame = NSRect(x: 0,
+						   y: 0,
+						   width: colorView.bounds.width,
+						   height: colorView.bounds.height + toolbarTopYMargin + toolbarBottomYMargin + toolbarHeight)
+		
+		view.frame = frame
     }
 	
 	override func viewWillAppear() {
@@ -76,6 +88,11 @@ extension RAColorPanelViewController {
 	func unembedColorPanel() {
 		stopObservingColor()
 		
+		if let toolbarView = toolbarView {
+			toolbarView.removeFromSuperview()
+			self.toolbarView = nil
+		}
+		
 		if let colorView = colorView {
 			colorView.removeFromSuperview()
 			colorPanel.contentView = colorView
@@ -97,24 +114,86 @@ private extension RAColorPanelViewController {
 		}
 		
 		view.addSubview(colorView)
-		
 		self.colorView = colorView
 		
 		if let swatch = locateColorSwatch() {
 			swatch.perform(updateSwatchSelector)
 		}
 		
-//        if let toolbar = colorPanel.toolbar {
-//            NSLog("%i", toolbar.items.count)
-//
-//            let item = toolbar.items[1]
-//
-//            if let icon = item.image {
-//                print("\(icon.size)")
-//            }
-//        }
+		let toolbarView = createToolbarView()
+		view.addSubview(toolbarView)
+		self.toolbarView = toolbarView
 		
 		startObservingColor()
+	}
+	
+	func createToolbarView() -> NSSegmentedControl {
+		var toolbarImages = [NSImage]()
+		var toolbarTooltips = [String]()
+		
+		var selectedToolbarItemIndex = -1
+		
+		if let toolbar = colorPanelToolbar {
+			var index = 0
+			
+			for toolbarItem in toolbar.items {
+				let identifier = toolbarItem.itemIdentifier
+				let toolTip = toolbarItem.toolTip
+				let icon = toolbarItem.image
+				let isSelected = identifier == toolbar.selectedItemIdentifier
+				
+				if let icon = icon {
+					if isSelected {
+						selectedToolbarItemIndex = index
+					}
+					
+					toolbarImages.append(icon)
+					toolbarTooltips.append(toolTip ?? "")
+				}
+				
+				index += 1
+			}
+		}
+		
+		let segmentedControl = NSSegmentedControl(images: toolbarImages,
+												  trackingMode: .selectOne,
+												  target: self,
+												  action: #selector(toolbarSegment_action(_:)))
+		
+		segmentedControl.selectedSegment = selectedToolbarItemIndex
+		
+		for (idx, toolbarTooltip) in toolbarTooltips.enumerated() {
+			segmentedControl.setAlignment(.right, forSegment: idx)
+			segmentedControl.setToolTip(toolbarTooltip, forSegment: idx)
+		}
+		
+		let toolbarSize = segmentedControl.fittingSize
+		let toolbarFrame = NSRect(x: toolbarXMargin,
+								  y: view.bounds.maxY - toolbarSize.height - toolbarTopYMargin,
+								  width: view.bounds.width - (toolbarXMargin * 2.0),
+								  height: toolbarSize.height)
+		
+		segmentedControl.frame = toolbarFrame
+		
+		return segmentedControl
+	}
+	
+	@objc
+	func toolbarSegment_action(_ sender: NSSegmentedControl) {
+		guard let toolbar = colorPanelToolbar else { return }
+		
+		let selectedIndex = sender.selectedSegment
+		
+		guard selectedIndex >= 0,
+			  selectedIndex < toolbar.items.count else { return }
+		
+		let toolbarItem = toolbar.items[selectedIndex]
+
+		if let target = toolbarItem.target {
+			if let action = toolbarItem.action {
+				let _ = target.perform(action, with: toolbarItem)
+			}
+		}
 	}
 	
 	func startObservingColor() {
