@@ -61,6 +61,7 @@ public class RAPopoverColorWell: NSColorWell {
 extension RAPopoverColorWell: NSPopoverDelegate {
     public func popoverDidClose(_ notification: Notification) {
         deactivate()
+        
         viewController.colorPanel.removeObserver(self, forKeyPath: Self.colorKeyPath)
     }
 }

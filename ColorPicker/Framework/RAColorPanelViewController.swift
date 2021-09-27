@@ -20,6 +20,10 @@ internal class RAColorPanelViewController: NSViewController {
             
             let item = toolbar.items[1]
             
+            if let icon = item.image {
+                print("\(icon.size)")
+            }
+            
             if let target = item.target {
                 if let action = item.action {
                     let _ = target.perform(action, with: item)
